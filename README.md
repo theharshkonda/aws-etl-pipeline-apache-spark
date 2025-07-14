@@ -1,4 +1,4 @@
-# 🚀 End-to-End ETL Pipeline with aws, AWS Glue, S3, and Athena 
+# 🚀 Serverless ETL Pipeline Using AWS Glue, S3, and Athena! 🛠️
 
 This project demonstrates how to build a **scalable ETL (Extract, Transform, Load)** pipeline using **AWS Glue**, **S3**, **Glue Data Catalog**, and **Amazon Athena**. The pipeline ingests raw data from S3, transforms it via a Glue job, and outputs it in optimized **Parquet format** for fast querying.
 
