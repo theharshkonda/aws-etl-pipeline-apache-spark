@@ -59,11 +59,7 @@ S3 read/write permissions for your bucket
 
 Enable AWS Glue and Athena in the region you're working in.
 
-# 🛠️ End-to-End AWS Glue ETL Pipeline Setup
 
-This guide walks you through creating a fully functional serverless ETL pipeline using AWS Glue, S3, and Athena — all within the AWS Free Tier.
-
----
 
 ## 🧾 Step-by-Step Setup
 
