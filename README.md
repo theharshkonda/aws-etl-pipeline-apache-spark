@@ -1,4 +1,4 @@
-# 🚀 End-to-End ETL Pipeline with Spark, AWS Glue, S3, and Athena 
+# 🚀 End-to-End ETL Pipeline with aws, AWS Glue, S3, and Athena 
 
 This project demonstrates how to build a **scalable ETL (Extract, Transform, Load)** pipeline using **AWS Glue**, **S3**, **Glue Data Catalog**, and **Amazon Athena**. The pipeline ingests raw data from S3, transforms it via a Glue job, and outputs it in optimized **Parquet format** for fast querying.
 
@@ -37,82 +37,128 @@ The ETL process includes:
 AWS S3	Storage for raw and cleaned datasets
 AWS Glue	Serverless ETL engine
 Glue Crawlers	Automatically infer schema & update Catalog
-Glue Jobs	Python/Spark-based transformation jobs
+Glue Jobs	Python/aws-based transformation jobs
 Glue Data Catalog	Metadata store for Athena/Redshift
 Amazon Athena	SQL-based query engine for S3
 IAM Roles	Secure access control
 
 ✅ Pre-requisites
 Before you begin:
+
 S3 Bucket: Create a bucket (e.g., my-etl-bucket) with two folders:
+
 raw_data/
+
 cleaned_data/
+
 IAM Role: Ensure an IAM role exists with at least the following permissions:
+
 AWSGlueServiceRole managed policy
+
 S3 read/write permissions for your bucket
+
 Enable AWS Glue and Athena in the region you're working in.
 
-🛠️ Step-by-Step Setup
-1. Upload Raw Data to S3
+# 🛠️ End-to-End AWS Glue ETL Pipeline Setup
+
+This guide walks you through creating a fully functional serverless ETL pipeline using AWS Glue, S3, and Athena — all within the AWS Free Tier.
+
+---
+
+## 🧾 Step-by-Step Setup
+
+### 1. Upload Raw Data to S3
+
 Upload a sample CSV (or JSON) to the S3 raw_data/ folder:
-s3://my-etl-spark-bucket/raw_data/data.csv
-You can use the AWS Console or aws s3 cp command.
 
-2. Configure and Run Glue Crawler (Raw Data)
-Navigate to AWS Glue > Crawlers
-Click Create Crawler
-Name: raw-data-crawler
-Source Type: S3
-Path: s3://my-etl-spark-bucket/raw_data/
-Choose IAM Role: AWSGlueServiceRole-GlueCrawlerRole
-Target: Create or use database: my_etl_db
-Run the crawler
+```
+s3://my-etl-aws-bucket/raw_data/data.csv
+```
 
-🔍 Result: A table called raw_data will appear under the my_etl_db Glue database.
+You can use the AWS Console **or** CLI command:
 
-3. Create and Run AWS Glue ETL Job
-Script: glue_etl_job.py
+```bash
+aws s3 cp data.csv s3://my-etl-aws-bucket/raw_data/
+```
 
+---
+
+### 2. Configure and Run Glue Crawler (Raw Data)
+
+1. Navigate to **AWS Glue > Crawlers**
+2. Click **Create Crawler**
+3. Configuration:
+   - **Name**: `raw-data-crawler`
+   - **Source Type**: S3
+   - **Path**: `s3://my-etl-aws-bucket/raw_data/`
+   - **IAM Role**: `AWSGlueServiceRole-GlueCrawlerRole`
+   - **Target Database**: `my_etl_db`
+4. Click **Run Crawler**
+
+✅ **Result**: A table called `raw_data` will appear under the `my_etl_db` Glue database.
+
+---
+
+### 3. Create and Run AWS Glue ETL Job
+
+#### Script: `glue_etl_job.py`
+
+```python
 import sys
 from awsglue.transforms import *
 from awsglue.utils import getResolvedOptions
-from pyspark.context import SparkContext
+from pyaws.context import awsContext
 from awsglue.context import GlueContext
 from awsglue.job import Job
+
 args = getResolvedOptions(sys.argv, ['JOB_NAME'])
-sc = SparkContext()
+sc = awsContext()
 glueContext = GlueContext(sc)
-spark = glueContext.spark_session
+aws = glueContext.aws_session
 job = Job(glueContext)
 job.init(args['JOB_NAME'], args)
+
 datasource = glueContext.create_dynamic_frame.from_catalog(
     database = "my_etl_db",
     table_name = "raw_data"
 )
+
 transformed_data = datasource.drop_fields(['unnecessary_column'])
+
 glueContext.write_dynamic_frame.from_options(
     frame = transformed_data,
     connection_type = "s3",
-    connection_options = {"path": "s3://my-etl-bucket/cleaned_data"},
+    connection_options = {"path": "s3://my-etl-aws-bucket/cleaned_data"},
     format = "parquet"
 )
+
 job.commit()
+```
 
+#### To Run:
 
-## To Run:
-Go to AWS Glue > Jobs
-Click Create Job
-Choose script editor and paste the above
-Choose your existing IAM role
-Run the job
-✅ Output will be written to:
-s3://my-etl-spark-bucket/cleaned_data/
+- Go to **AWS Glue > Jobs**
+- Click **Create Job**
+- Use **script editor** and paste above
+- Choose your existing **IAM Role**
+- Click **Run Job**
 
+✅ Output written to:
 
-## 4. IAM Role Fix: Add S3 Write Permissions
-If your job fails with a PERMISSION_ERROR, do the following:
-Go to IAM > Roles > AWSGlueServiceRole-GlueCrawlerRole
-Add this inline policy:
+```
+s3://my-etl-aws-bucket/cleaned_data/
+```
+
+---
+
+### 4. IAM Role Fix: Add S3 Write Permissions
+
+If your job fails with a `PERMISSION_ERROR`, follow these steps:
+
+1. Go to **IAM > Roles > AWSGlueServiceRole-GlueCrawlerRole**
+2. Add this **inline policy**:
+
+```json
 {
   "Version": "2012-10-17",
   "Statement": [
@@ -123,52 +169,75 @@ Add this inline policy:
         "s3:GetObject",
         "s3:DeleteObject"
       ],
-      "Resource": "arn:aws:s3:::my-etl-spark-bucket/cleaned_data/*"
+      "Resource": "arn:aws:s3:::my-etl-aws-bucket/cleaned_data/*"
     },
     {
       "Effect": "Allow",
       "Action": [
         "s3:ListBucket"
       ],
-      "Resource": "arn:aws:s3:::my-etl-spark-bucket"
+      "Resource": "arn:aws:s3:::my-etl-aws-bucket"
     }
   ]
 }
-✅ Replace my-etl-spark-bucket with your actual bucket name.
+```
 
+✅ Replace `my-etl-aws-bucket` with your actual bucket name.
 
-## 5. Run Crawler for Cleaned Data
-Go to Glue > Crawlers
-Create a new crawler: cleaned-data-crawler
-Data Source: s3://my-etl-spark-bucket/cleaned_data/
-Target database: my_etl_db
-Run the crawler
-✅ This adds a new table: cleaned_data in your Glue Catalog
+---
 
-## 6. Query Cleaned Data in Athena
-Go to Amazon Athena > Query Editor
-Choose Data Source: AwsDataCatalog
-Choose Database: my_etl_db
+### 5. Run Crawler for Cleaned Data
 
-## Run query:
+1. Go to **Glue > Crawlers**
+2. Click **Create Crawler**
+3. Configuration:
+   - **Name**: `cleaned-data-crawler`
+   - **Source**: `s3://my-etl-aws-bucket/cleaned_data/`
+   - **Target Database**: `my_etl_db`
+4. Click **Run Crawler**
+
+✅ A new table `cleaned_data` will be created.
+
+---
+
+### 6. Query Cleaned Data in Athena
+
+1. Go to **Amazon Athena > Query Editor**
+2. Choose:
+   - **Data Source**: `AwsDataCatalog`
+   - **Database**: `my_etl_db`
+3. Run Query:
+
+```sql
 SELECT * FROM cleaned_data LIMIT 10;
-✅ You should see the transformed data loaded via Glue ETL job.
+```
+
+✅ You should see the transformed data loaded via the Glue ETL job.
+
+---
 
 ## 🔁 Re-running the Pipeline
-Task	When to Run Again
-Upload new raw data	Whenever new data arrives
-Re-run raw-data-crawler	After uploading new files
-Run Glue ETL Job	To re-transform newly added raw data
-Run cleaned-data-crawler	To update the cleaned_data table
-Query in Athena	After running all above steps
 
+| Task                     | When to Run Again                      |
+|--------------------------|----------------------------------------|
+| Upload new raw data      | Whenever new data arrives              |
+| Run raw-data-crawler     | After uploading new files              |
+| Run Glue ETL Job         | To re-transform newly added raw data   |
+| Run cleaned-data-crawler | To update the `cleaned_data` table     |
+| Query in Athena          | After running all the above steps      |
 
-📬 Support
-For help with permission errors, job failures, or Data Catalog issues, check:
-AWS Glue Logs in CloudWatch
-IAM Role permissions for Glue, S3, Athena
-Athena Workgroup settings for output location
+---
 
+## 📬 Support
 
-🏁 License
-This project is licensed under the MIT License.
+If anything goes wrong (e.g. permission errors, table not found), check:
+
+- **AWS Glue Logs** → In **CloudWatch**
+- **IAM Role permissions** → For Glue, S3, Athena
+- **Athena Workgroup settings** → For output location
+
+---
+
+## 🏁 License
+
+This project is licensed under the **MIT License**.
