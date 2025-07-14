@@ -3,6 +3,29 @@
 This project demonstrates how to build a **scalable ETL (Extract, Transform, Load)** pipeline using **AWS Glue**, **S3**, **Glue Data Catalog**, and **Amazon Athena**. The pipeline ingests raw data from S3, transforms it via a Glue job, and outputs it in optimized **Parquet format** for fast querying.
 
 ---
+# 📦 Use Case
+For this tutorial, let's assume you have a vendor who provides incremental sales data at the end of every month. The file arrives in Amazon S3 as a CSV file, and it needs to be processed and made available to your data analysts for querying and analysis.
+
+# 🏗️ Architecture
+To implement this data pipeline, we will use AWS Glue — a fully managed serverless ETL service — as the data processing engine, and Amazon S3 for storage.
+
+We'll use:
+
+RAW data: Input and unprocessed CSV files stored in S3 (e.g., s3://my-etl-bucket/raw_data/)
+
+CLEANSED data: Transformed and processed data stored back into S3 in Parquet format (e.g., s3://my-etl-bucket/cleaned_data/)
+
+We will build a pipeline that:
+
+Receives a new sales file in S3.
+
+Catalogs the schema using an AWS Glue Crawler.
+
+Processes the data using an AWS Glue ETL Job (PySpark) with the necessary transformations.
+
+Saves the cleaned and transformed data into a target S3 bucket.
+
+Makes the output data queryable using Amazon Athena via SQL.
 
 ## 📌 Table of Contents
 
