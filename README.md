@@ -9,6 +9,8 @@ For this Pipeline, let's assume you have a vendor who provides incremental sales
 # 🏗️ Architecture
 To implement this data pipeline, we will use AWS Glue — a fully managed serverless ETL service — as the data processing engine, and Amazon S3 for storage.
 
+<img width="3750" height="3750" alt="( RAW DATA ) (1)" src="https://github.com/user-attachments/assets/dae8f7b0-b3e9-4e11-a0c5-2a8ec914f9e6" />
+
 We'll use:
 
 RAW data: Input and unprocessed CSV files stored in S3 (e.g., s3://my-etl-bucket/raw_data/)
@@ -74,6 +76,8 @@ raw_data/
 
 cleaned_data/
 
+<img width="1709" height="758" alt="Screenshot 2025-07-14 231214" src="https://github.com/user-attachments/assets/64f9dabe-abed-4694-b3b1-99561bb39f06" />
+
 IAM Role: Ensure an IAM role exists with at least the following permissions:
 
 AWSGlueServiceRole managed policy
@@ -102,6 +106,9 @@ aws s3 cp data.csv s3://my-etl-aws-bucket/raw_data/
 
 ---
 
+<img width="1689" height="780" alt="Screenshot 2025-07-14 231257" src="https://github.com/user-attachments/assets/c60323a6-6e42-4e6f-a6c6-70cd5b5b9618" />
+
+
 ### 2. Configure and Run Glue Crawler (Raw Data)
 
 1. Navigate to **AWS Glue > Crawlers**
@@ -117,6 +124,9 @@ aws s3 cp data.csv s3://my-etl-aws-bucket/raw_data/
 ✅ **Result**: A table called `raw_data` will appear under the `my_etl_db` Glue database.
 
 ---
+
+<img width="1915" height="864" alt="Screenshot 2025-07-14 232224" src="https://github.com/user-attachments/assets/f8fdf2df-3aca-46f0-b344-881b21222cf5" />
+
 
 ### 3. Create and Run AWS Glue ETL Job
 
@@ -153,6 +163,7 @@ glueContext.write_dynamic_frame.from_options(
 
 job.commit()
 ```
+<img width="1917" height="799" alt="Screenshot 2025-07-14 233942" src="https://github.com/user-attachments/assets/47605ced-f2fa-49b2-8689-6359645baedd" />
 
 #### To Run:
 
@@ -162,6 +173,8 @@ job.commit()
 - Choose your existing **IAM Role**
 - Click **Run Job**
 
+<img width="1909" height="873" alt="Screenshot 2025-07-15 002130" src="https://github.com/user-attachments/assets/9c5a7652-5e30-44a3-968c-30460d54d013" />
+
 ✅ Output written to:
 
 ```
@@ -169,6 +182,9 @@ s3://my-etl-aws-bucket/cleaned_data/
 ```
 
 ---
+
+<img width="1914" height="726" alt="Screenshot 2025-07-15 002153" src="https://github.com/user-attachments/assets/34bff6af-511a-4dd5-80ad-07e31962f5b5" />
+
 
 ### 4. IAM Role Fix: Add S3 Write Permissions
 
@@ -219,6 +235,9 @@ If your job fails with a `PERMISSION_ERROR`, follow these steps:
 
 ---
 
+<img width="1865" height="882" alt="Screenshot 2025-07-14 234429" src="https://github.com/user-attachments/assets/fc2912f6-c597-4a0a-8fc9-89a6d687bd9a" />
+
+
 ### 6. Query Cleaned Data in Athena
 
 1. Go to **Amazon Athena > Query Editor**
@@ -230,6 +249,10 @@ If your job fails with a `PERMISSION_ERROR`, follow these steps:
 ```sql
 SELECT * FROM cleaned_data LIMIT 10;
 ```
+<img width="1919" height="886" alt="Screenshot 2025-07-15 002454" src="https://github.com/user-attachments/assets/cf25bdc9-653c-491a-9f49-ac1b723dea40" />
+
+<img width="1919" height="899" alt="Screenshot 2025-07-15 002632" src="https://github.com/user-attachments/assets/6d60b10a-9cb7-4d84-a497-2e1868f3efc3" />
+
 
 ✅ You should see the transformed data loaded via the Glue ETL job.
 
